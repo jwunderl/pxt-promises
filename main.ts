@@ -2,8 +2,8 @@ type PromiseResult<T> = T | PromiseLike<T>;
 
 interface PromiseLike<T> {
     then<TResult1 = T, TResult2 = never>(
-        onfulfilled?: (value: T) => PromiseResult<TResult1>,
-        onrejected?: (reason: any) => PromiseResult<TResult2>
+        onFulfilled?: (value: T) => PromiseResult<TResult1>,
+        onRejected?: (reason: any) => PromiseResult<TResult2>
     ): PromiseLike<TResult1 | TResult2>;
 }
 
@@ -19,18 +19,18 @@ class Promise<T> implements PromiseLike<T> {
 
     public then<TResult1 = T, TResult2 = never>(
         onfulfilled?: (value: T) => PromiseResult<TResult1>,
-        onrejected?: (reason: any) => PromiseResult<TResult2>
+        onRejected?: (reason: any) => PromiseResult<TResult2>
     ): Promise<TResult1 | TResult2> {
         return undefined; // not yet implemented
     }
 
     public catch<TResult = never>(
-        onrejected?: (reason: any) => PromiseResult<TResult>
+        onRejected?: (reason: any) => PromiseResult<TResult>
     ): Promise<T | TResult> {
         return undefined; // not yet implemented
     }
 
-    public finally(onfinally?: () => void): Promise<T> {
+    public finally(onFinally?: () => void): Promise<T> {
         return undefined; // not yet implemented
     }
 
