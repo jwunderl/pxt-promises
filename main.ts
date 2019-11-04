@@ -150,7 +150,7 @@ class Promise<T> implements PromiseLike<T> {
     public catch<TResult = never>(
         onRejected?: (reason: any) => PromiseResult<TResult>
     ): Promise<T | TResult> {
-        return undefined; // not yet implemented
+        return this.then(undefined, onRejected);
     }
 
     public finally(onFinally?: () => void): Promise<T> {
