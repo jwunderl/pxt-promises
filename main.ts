@@ -104,6 +104,16 @@ class Promise<T> implements PromiseLike<T> {
             if (this.state === PromiseState.REJECTED
                 // && typeof handler.onRejected === 'function') {
             ) {
+                console.log(`h: ${console.inspect(handler)} e: ${this.error}`)
+                /**
+                 * Fails on next line, saying handler is undefined.
+                 * 
+                 * However, console.log above shows it is defined,
+                 * and contains a .onRejected method;
+                 * this is only ever passed an obj directly from .done
+                 * and .fulfill / .reject, which only pass back in the deferred
+                 * ones from previous .done's.
+                 **/
                 handler.onRejected(this.error);
             }
         }
