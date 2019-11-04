@@ -13,7 +13,7 @@ enum PromiseState {
     REJECTED
 }
 
-type Resolver = (
+type Resolver<T> = (
     fulfiller: (value: PromiseResult<T>) => void,
     rejecter: (value: PromiseResult<T>) => void
 ) => void;
@@ -155,7 +155,7 @@ function isThenable<T>(value: PromiseResult<T>): value is PromiseLike<T> {
 //     }
 // }
 function doResolve<T>(
-        fn: Resolver,
+        fn: Resolver<T>,
         onFulfilled: (value: PromiseResult<T>) => void,
         onRejected: (reason: any) => void
     ) {
