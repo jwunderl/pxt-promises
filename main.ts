@@ -180,11 +180,11 @@ class Promise<T> implements PromiseLike<T> {
     }
 
     public static reject<T = never>(reason?: any): Promise<T> {
-        return undefined; // not yet implemented
+        return new Promise((_, reject) => reject(reason));
     }
 
     public static resolve<T>(value: PromiseResult<T>): Promise<T> {
-        return undefined; // not yet implemented
+        return new Promise(resolve => resolve(value));
     }
 }
 
