@@ -39,14 +39,16 @@ class Promise<T> implements PromiseLike<T> {
         this.state = PromiseState.PENDING;
         
         // need to spawn new fiber before this
-        doResolve(
-            (
-                fulfiller: (value: PromiseResult<T>) => void,
-                rejecter: (value: PromiseResult<T>) => void
-            ) => executor(fulfiller, rejecter),
-            (t: T) => this.resolve(t),
-            (e: any) => this.reject(e)
-        );
+        control.runInParallel(() => {
+            doResolve(
+                (
+                    fulfiller: (value: PromiseResult<T>) => void,
+                    rejecter: (value: PromiseResult<T>) => void
+                ) => executor(fulfiller, rejecter),
+                (t: T) => this.resolve(t),
+                (e: any) => this.reject(e)
+            );
+        });
     }
 
     // protected fulfill(result: PromiseResult<T>): void {
@@ -109,12 +111,14 @@ class Promise<T> implements PromiseLike<T> {
         onRejected?: (reason: any) => PromiseResult<TResult2>
     ): void {
         // ensure we are always asynchronous; normally setTimeout(..., 0)
-        control.runInParallel(() => {
-            this.handle({
-                onFulfilled: onFulfilled || ((t) => { }),
-                onRejected: onRejected || ((t) => { })
-            });
+        // control.runInParallel(() => {
+        // since the entire thing is wrapped in a new fiber, just pause trivially to yield
+        pause(1);
+        this.handle({
+            onFulfilled: onFulfilled || ((t) => { }),
+            onRejected: onRejected || ((t) => { })
         });
+        // });
     }
 
     public then<TResult1 = T, TResult2 = never>(
