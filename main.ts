@@ -37,6 +37,7 @@ class Promise<T> implements PromiseLike<T> {
         ) => void
     ) {
         this.state = PromiseState.PENDING;
+        this.handlers = [];
 
         control.runInParallel(() => {
             doResolve(
