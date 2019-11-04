@@ -53,11 +53,15 @@ class Promise<T> implements PromiseLike<T> {
     protected fulfill(result: T): void {
         this.state = PromiseState.FULFILLED;
         this.value = result;
+        this.handlers.forEach(handler => this.handle(handler));
+        this.handlers = undefined
     }
 
     protected reject(error: any): void {
         this.state = PromiseState.REJECTED;
         this.error = error;
+        this.handlers.forEach(handler => this.handle(handler));
+        this.handlers = undefined
     }
 
     protected resolve(result: PromiseResult<T>) {
