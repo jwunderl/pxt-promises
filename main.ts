@@ -37,15 +37,14 @@ class Promise<T> implements PromiseLike<T> {
         ) => void
     ) {
         this.state = PromiseState.PENDING;
-        
-        // need to spawn new fiber before this
+
         control.runInParallel(() => {
             doResolve(
                 (
                     fulfiller: (value: PromiseResult<T>) => void,
                     rejecter: (value: PromiseResult<T>) => void
                 ) => executor(fulfiller, rejecter),
-                (t: T) => this.resolve(t),
+                (t: T) => this.resolveThis(t),
                 (e: any) => this.reject(e)
             );
         });
@@ -66,7 +65,8 @@ class Promise<T> implements PromiseLike<T> {
         this.handlers = undefined
     }
 
-    protected resolve(result: PromiseResult<T>) {
+    /** typically just .resolve, but renaming to disambiguate between this and Promise.resolve()**/
+    protected resolveThis(result: PromiseResult<T>) {
         try {
             // let then = getThen(result);
             // if (then) {
@@ -80,7 +80,7 @@ class Promise<T> implements PromiseLike<T> {
                         fulfiller: (value: PromiseResult<T>) => void,
                         rejecter: (value: PromiseResult<T>) => void
                     ) => result.then(fulfiller, rejecter),
-                    (t: T) => this.resolve(t),
+                    (t: T) => this.resolveThis(t),
                     (e: any) => this.reject(e)
                 );
             } else {
