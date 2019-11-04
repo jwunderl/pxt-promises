@@ -15,15 +15,20 @@ enum PromiseState {
 }
 
 type Resolver<T> = (
-    fulfiller: (value: PromiseResult<T>) => void,
-    rejecter: (value: PromiseResult<T>) => void
+    onFulfilled: (value: PromiseResult<T>) => void,
+    onRejected: (value: PromiseResult<T>) => void
 ) => void;
+
+interface Handler<T, TResult1, TResult2> {
+    onFulfilled(value: T): PromiseResult<TResult1>,
+    onRejected(reason: any): PromiseResult<TResult2>
+}
 
 class Promise<T> implements PromiseLike<T> {
     state: PromiseState;
-    value: PromiseResult<T>;
+    value: T;
     error: any;
-    handlers: PromiseLike<any>[];
+    handlers: Handler<T, any, any>[];
 
     public constructor(
         executor: (
@@ -33,6 +38,7 @@ class Promise<T> implements PromiseLike<T> {
     ) {
         this.state = PromiseState.PENDING;
         
+        // need to spawn new fiber before this
         doResolve(
             (
                 fulfiller: (value: PromiseResult<T>) => void,
@@ -77,8 +83,38 @@ class Promise<T> implements PromiseLike<T> {
         }
     }
 
+    protected handle<TResult1 = T, TResult2 = never>(handler: Handler<T, TResult1, TResult2>) {
+        if (this.state === PromiseState.PENDING) {
+            this.handlers.push(handler);
+        } else {
+            if (this.state === PromiseState.FULFILLED
+                // && typeof handler.onFulfilled === 'function') {
+            ) {
+                handler.onFulfilled(this.value);
+            }
+            if (this.state === PromiseState.REJECTED
+                // && typeof handler.onRejected === 'function') {
+            ) {
+                handler.onRejected(this.error);
+            }
+        }
+    }
+
+    public done<TResult1 = T, TResult2 = never>(
+        onFulfilled?: (value: T) => PromiseResult<TResult1>,
+        onRejected?: (reason: any) => PromiseResult<TResult2>
+    ): void {
+        // ensure we are always asynchronous; normally setTimeout(..., 0)
+        control.runInParallel(() => {
+            this.handle({
+                onFulfilled: onFulfilled || ((t) => { }),
+                onRejected: onRejected || ((t) => { })
+            });
+        });
+    }
+
     public then<TResult1 = T, TResult2 = never>(
-        onfulfilled?: (value: T) => PromiseResult<TResult1>,
+        onFulfilled?: (value: T) => PromiseResult<TResult1>,
         onRejected?: (reason: any) => PromiseResult<TResult2>
     ): Promise<TResult1 | TResult2> {
         return undefined; // not yet implemented
