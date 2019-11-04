@@ -23,6 +23,7 @@ class Promise<T> implements PromiseLike<T> {
     value: PromiseResult<T>;
     error: any;
     handlers: PromiseLike<any>[];
+
     public constructor(
         executor: (
             resolve: (value?: T | PromiseLike<T>) => void,
@@ -30,12 +31,15 @@ class Promise<T> implements PromiseLike<T> {
         ) => void
     ) {
         this.state = PromiseState.PENDING;
-        // not yet implemented
-        try {
-            
-        } catch(e) {
-
-        }
+        
+        doResolve(
+            (
+                fulfiller: (value: PromiseResult<T>) => void,
+                rejecter: (value: PromiseResult<T>) => void
+            ) => executor(fulfiller, rejecter),
+            (t: T) => this.resolve(t),
+            (e: any) => this.reject(e)
+        );
     }
 
     // protected fulfill(result: PromiseResult<T>): void {
