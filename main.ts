@@ -1,3 +1,4 @@
+// Implementation partially derived from https://www.promisejs.org/implementing/
 type PromiseResult<T> = T | PromiseLike<T>;
 
 interface PromiseLike<T> {
