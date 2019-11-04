@@ -254,3 +254,5 @@ function doResolve<T>(
         onRejected(ex);
     }
 }
+
+// TODO: is node8 util.promisify implementable? reasonable approximation should be
