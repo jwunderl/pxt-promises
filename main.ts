@@ -83,6 +83,8 @@ class Promise<T> implements PromiseLike<T> {
                     (t: T) => this.resolve(t),
                     (e: any) => this.reject(e)
                 );
+            } else {
+                this.fulfill(result);
             }
         } catch (e) {
             this.reject(e);
