@@ -117,7 +117,34 @@ class Promise<T> implements PromiseLike<T> {
         onFulfilled?: (value: T) => PromiseResult<TResult1>,
         onRejected?: (reason: any) => PromiseResult<TResult2>
     ): Promise<TResult1 | TResult2> {
-        return undefined; // not yet implemented
+        return new Promise<TResult1 | TResult2>((resolve, reject) => {
+            return this.done(
+                result => {
+                    // if (typeof onFulfilled === 'function') {
+                    if (onFulfilled) {
+                        try {
+                            resolve(onFulfilled(result));
+                        } catch (ex) {
+                            reject(ex);
+                        }
+                    } else { // if no onFulfilled, TResult1 = T
+                        resolve(result as any as TResult1);
+                    }
+                },
+                error => {
+                    // if (typeof onRejected === 'function') {
+                    if (onRejected) {
+                        try {
+                            resolve(onRejected(error));
+                        } catch (ex) {
+                            reject(ex);
+                        }
+                    } else { // if no onRejected, TResult1 = T
+                        reject(error);
+                    }
+                }
+            )
+        });
     }
 
     public catch<TResult = never>(
