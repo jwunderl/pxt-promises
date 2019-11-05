@@ -1,3 +1,6 @@
+const delay = (n: number) => new Promise(resolve => (pause(n), resolve()));
+
+// catch / then / catch / finally
 function test1() {
     const anything = () => {
         throw 'I can be anything because I should never get called!';
@@ -14,21 +17,16 @@ function test1() {
         .then(value => console.log(value)) // logs 42
         .then(throwSomethingWrong) // logs not ignored!
         .catch(throwSomethingWrong) // logs not ignored!
-        .catch(() => 24); // resolves
+        .catch(() => 24) // resolves
+        .finally(() => console.log("Heyo!"));
 }
 
+// all / allSettled / race
 function test2() {
-    const delay = (n: number) => new Promise(resolve => {
-        pause(n)
-        resolve()
-    });
-
     const promises = [
         delay(100).then(() => 1),
         delay(200).then(() => 2),
-        delay(300).then(() => {
-            throw "Boom";
-        }),
+        delay(300).then(() => { throw "Boom"; }),
     ];
 
     Promise.all(promises).then(console.log).catch(console.error);
@@ -40,4 +38,19 @@ function test2() {
         .then(console.log)
 }
 
-test2()
+/** really poor random background color chooser **/
+function test3() {
+    const promises = [];
+    for (let i = 0x1; i < 0xF; ++i) {
+        const j = i;
+        promises.push(
+            delay(Math.randomRange(1000, 2000))
+                .then(() => j)
+        );
+    }
+
+    Promise.race(promises)
+        .then(c => scene.setBackgroundColor(c));
+}
+
+test3()
