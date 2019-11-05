@@ -123,14 +123,12 @@ class Promise<T> implements PromiseLike<T> {
         onRejected?: (reason: any) => PromiseResult<TResult2>
     ): void {
         // ensure we are always asynchronous; normally setTimeout(..., 0)
-        // control.runInParallel(() => {
-        // since the entire thing is wrapped in a new fiber, just pause trivially to yield
-        pause(1);
-        this.handle({
-            onFulfilled: onFulfilled || ((t) => { }),
-            onRejected: onRejected || ((t) => { })
+        control.runInParallel(() => {
+            this.handle({
+                onFulfilled: onFulfilled || ((t) => { }),
+                onRejected: onRejected || ((t) => { })
+            });
         });
-        // });
     }
 
     public then<TResult1 = T, TResult2 = never>(
