@@ -180,15 +180,28 @@ class Promise<T> implements PromiseLike<T> {
         );
     }
 
-    public static all<T>(values: (PromiseResult<T>)[]): Promise<T[]> {
+    public static all<T>(promises: (PromiseLike<T>)[]): Promise<T[]> {
+        return new Promise((fulfill, reject) => {
+            const result: T[] = [];
+            let completed = 0;
+
+            for (let i = 0; i < promises.length; ++i) {
+                promises[i].then(value => {
+                    result[i] = value;
+
+                    if ((++completed) == promises.length) {
+                        fulfill(result);
+                    }
+                }, reject);
+            }
+        });
+    }
+
+    public static allSettled<T>(promises: PromiseLike<T>[]): Promise<T[]> {
         return undefined; // not yet implemented
     }
 
-    public static allSettled<T>(values: (PromiseResult<T>)[]): Promise<T[]> {
-        return undefined; // not yet implemented
-    }
-
-    public static race<T>(values: T[]): Promise<T> {
+    public static race<T>(promises: PromiseLike<T>[]): Promise<T> {
         return undefined; // not yet implemented
     }
 
