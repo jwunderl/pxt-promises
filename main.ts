@@ -78,12 +78,6 @@ class Promise<T> implements PromiseLike<T> {
     /** typically just .resolve, but renaming to disambiguate between this and Promise.resolve()**/
     protected resolveThis(result: PromiseResult<T>) {
         try {
-            // let then = getThen(result);
-            // if (then) {
-            //     doResolve(then.bind(result), resolve, reject);
-            //     return;
-            // }
-            // fulfill(result)
             if (isThenable(result)) {
                 doResolve(
                     (
@@ -105,14 +99,10 @@ class Promise<T> implements PromiseLike<T> {
         if (this.state === PromiseState.PENDING) {
             this.handlers.push(handler);
         } else {
-            if (this.state === PromiseState.FULFILLED
-                // && typeof handler.onFulfilled === 'function') {
-            ) {
+            if (this.state === PromiseState.FULFILLED) {
                 handler.onFulfilled(this.value);
             }
-            if (this.state === PromiseState.REJECTED
-                // && typeof handler.onRejected === 'function') {
-            ) {
+            if (this.state === PromiseState.REJECTED) {
                 handler.onRejected(this.error);
             }
         }
@@ -138,7 +128,6 @@ class Promise<T> implements PromiseLike<T> {
         return new Promise<TResult1 | TResult2>((resolve, reject) => {
             return this.done(
                 result => {
-                    // if (typeof onFulfilled === 'function') {
                     if (onFulfilled) {
                         try {
                             resolve(onFulfilled(result));
@@ -150,7 +139,6 @@ class Promise<T> implements PromiseLike<T> {
                     }
                 },
                 error => {
-                    // if (typeof onRejected === 'function') {
                     if (onRejected) {
                         try {
                             resolve(onRejected(error));
@@ -220,50 +208,14 @@ class Promise<T> implements PromiseLike<T> {
     }
 }
 
-// function getThen<T>(value: PromiseResult<T>) {
-//     let t = typeof value;
-//     if (value && (t === 'object' || t === 'function')) {
-//         let then = (value as PromiseLike<T>).then;
-//         if (typeof then === 'function') {
-//             return then;
-//         }
-//     }
-//     return null;
-// }
 function isThenable<T>(value: PromiseResult<T>): value is PromiseLike<T> {
     let t = typeof value;
     if (value && (t === 'object' || t === 'function')) {
-        // let then = (value as PromiseLike<T>).then;
-        // if (typeof then === 'function') {
-        //     return then;
-        // }
         return (value as any).__PROMISE_MARK || (Object.keys(value).indexOf("then") !== -1);
     }
     return false;
 }
 
-// function doResolve<T>(
-//         fn: Resolver,
-//         onFulfilled: (value: PromiseResult<T>) => void,
-//         onRejected: (reason: any) => void
-//     ) {
-//     let done = false;
-//     try {
-//         fn(function (value) {
-//             if (done) return;
-//             done = true;
-//             onFulfilled(value);
-//         }, function (reason) {
-//             if (done) return;
-//             done = true;
-//             onRejected(reason);
-//         })
-//     } catch (ex) {
-//         if (done) return;
-//         done = true;
-//         onRejected(ex);
-//     }
-// }
 function doResolve<T>(
         fn: Resolver<T>,
         onFulfilled: (value: PromiseResult<T>) => void,
