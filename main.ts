@@ -172,13 +172,16 @@ class Promise<T> implements PromiseLike<T> {
             let completed = 0;
 
             for (let i = 0; i < promises.length; ++i) {
-                promises[i].then(value => {
-                    result[i] = value;
+                promises[i].then(
+                    value => {
+                        result[i] = value;
 
-                    if ((++completed) == promises.length) {
-                        fulfill(result);
-                    }
-                }, reject);
+                        if ((++completed) == promises.length) {
+                            fulfill(result);
+                        }
+                    },
+                    reject
+                );
             }
         });
     }
