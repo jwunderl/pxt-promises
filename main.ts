@@ -171,12 +171,10 @@ class Promise<T> implements PromiseLike<T> {
             const result: T[] = [];
             let completed = 0;
 
-            for (let i = 0; i < promises.length; ++i) {
-                // hack around scoping bug
-                const j = i;
-                promises[i].then(
+            promises.forEach((p, i) => {
+                p.then(
                     value => {
-                        result[j] = value;
+                        result[i] = value;
 
                         if ((++completed) == promises.length) {
                             fulfill(result);
@@ -184,7 +182,7 @@ class Promise<T> implements PromiseLike<T> {
                     },
                     reject
                 );
-            }
+            });
         });
     }
 
