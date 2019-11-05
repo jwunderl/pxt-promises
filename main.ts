@@ -174,7 +174,10 @@ class Promise<T> implements PromiseLike<T> {
     }
 
     public finally(onFinally?: () => void): Promise<T> {
-        return undefined; // not yet implemented
+        return this.then(
+            value => Promise.resolve(onFinally()).then(() => value),
+            reason => Promise.resolve(onFinally()).then(() => { throw reason; })
+        );
     }
 
     public static all<T>(values: (PromiseResult<T>)[]): Promise<T[]> {
