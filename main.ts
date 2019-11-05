@@ -17,7 +17,7 @@ interface SettledPromise<T> {
     status: "fulfilled" | "rejected",
     value?: T, // only if status == "fulfilled"
     reason?: any // only if status == "rejected"
-}
+} 
 
 enum PromiseState {
     PENDING,
