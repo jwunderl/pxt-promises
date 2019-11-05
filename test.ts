@@ -31,10 +31,8 @@ function test2() {
 
     Promise.all(promises).then(console.log).catch(console.error);
     Promise.race(promises).then(console.log).catch(console.error);
-    // It looks like allSettled will likely be useless for now due to the need to type it aggressively / with any like below
-    // Maybe { status: "fulfilled" | "rejected", value?: T, reason?: any } to lose some type safety but gain usability
     Promise.allSettled(promises)
-        .then(res => res.filter(p => p.status === "fulfilled") as { status: "fulfilled"; value: number; }[])
+        .then(res => res.filter(p => p.status === "fulfilled"))
         .then(res => res.map(p => p.value))
         .then(console.log)
 }
@@ -45,7 +43,7 @@ function test3() {
     for (let i = 0x1; i < 0xF; ++i) {
         const j = i;
         promises.push(
-            delay(Math.randomRange(1000, 2000))
+            delay(Math.randomRange(100, 2000))
                 .then(() => j)
         );
     }
@@ -54,4 +52,4 @@ function test3() {
         .then(c => scene.setBackgroundColor(c));
 }
 
-test3()
+test3();

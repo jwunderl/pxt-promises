@@ -8,6 +8,17 @@ interface PromiseLike<T> {
     ): PromiseLike<TResult1 | TResult2>;
 }
 
+/** for Promise.allSettled. Ideally should be
+ * {status: "fulfilled", value: T} | {status: "rejected", reason: any}
+ * to better reflect state, but that makes it really,
+ * really hard to actually use currently.
+ **/
+interface SettledPromise<T> {
+    status: "fulfilled" | "rejected",
+    value?: T, // only if status == "fulfilled"
+    reason?: any // only if status == "rejected"
+}
+
 enum PromiseState {
     PENDING,
     FULFILLED,
@@ -186,9 +197,7 @@ class Promise<T> implements PromiseLike<T> {
         });
     }
 
-    public static allSettled<T>(
-        promises: PromiseLike<T>[]
-    ): Promise<({status: "fulfilled", value: T} | {status: "rejected", reason: any})[]> {
+    public static allSettled<T>(promises: PromiseLike<T>[]): Promise<SettledPromise<T>[]> {
         return Promise.all(
             promises.map(
                 /**
