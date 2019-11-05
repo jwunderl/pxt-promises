@@ -33,7 +33,7 @@ function test2() {
 
     Promise.all(promises).then(console.log).catch(console.error);
     Promise.race(promises).then(console.log).catch(console.error);
-    //  it looks like allSettled will likely be useless for now, and this is broken for now as well
+    //  it looks like allSettled will likely be useless for now due to the need to type it aggressively / with any like below
     Promise.allSettled(promises)
         .then(res => res.filter(p => p.status === "fulfilled") as { status: "fulfilled"; value: number; }[])
         .then(res => res.map(p => p.value))

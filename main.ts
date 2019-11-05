@@ -172,9 +172,11 @@ class Promise<T> implements PromiseLike<T> {
             let completed = 0;
 
             for (let i = 0; i < promises.length; ++i) {
+                // hack around scoping bug
+                const j = i;
                 promises[i].then(
                     value => {
-                        result[i] = value;
+                        result[j] = value;
 
                         if ((++completed) == promises.length) {
                             fulfill(result);
