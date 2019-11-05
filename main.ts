@@ -200,7 +200,15 @@ class Promise<T> implements PromiseLike<T> {
     }
 
     public static race<T>(promises: PromiseLike<T>[]): Promise<T> {
-        return undefined; // not yet implemented
+        return new Promise(function (fulfill, reject) {
+            promises.forEach(function (p) {
+                // invoke the first one that completes, ignore the rest
+                p.then(
+                    fulfill,
+                    reject
+                );
+            });
+        });
     }
 
     public static reject<T = never>(reason?: any): Promise<T> {
