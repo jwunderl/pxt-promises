@@ -25,10 +25,19 @@ interface Handler<T, TResult1, TResult2> {
 }
 
 class Promise<T> implements PromiseLike<T> {
-    state: PromiseState;
-    value: T;
-    error: any;
-    handlers: Handler<T, any, any>[];
+    protected state: PromiseState;
+    protected value: T;
+    protected error: any;
+    protected handlers: Handler<T, any, any>[];
+
+    /**
+     * INTERNAL
+     * this is temporarily used to identify Promise class objects at runtime,
+     * as Object.keys cannot yet enumerate objects that are dynamically class types.
+     * 
+     * This may change or be removed at any time.
+     **/
+    __PROMISE_MARK = 42;
 
     public constructor(
         executor: (
@@ -206,7 +215,7 @@ function isThenable<T>(value: PromiseResult<T>): value is PromiseLike<T> {
         // if (typeof then === 'function') {
         //     return then;
         // }
-        return Object.keys(value).indexOf("then") !== -1;
+        return (value as any).__PROMISE_MARK || (Object.keys(value).indexOf("then") !== -1);
     }
     return false;
 }
