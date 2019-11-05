@@ -65,14 +65,14 @@ class Promise<T> implements PromiseLike<T> {
         this.state = PromiseState.FULFILLED;
         this.value = result;
         this.handlers.forEach(handler => this.handle(handler));
-        this.handlers = undefined
+        this.handlers = undefined;
     }
 
     protected reject(error: any): void {
         this.state = PromiseState.REJECTED;
         this.error = error;
         this.handlers.forEach(handler => this.handle(handler));
-        this.handlers = undefined
+        this.handlers = undefined;
     }
 
     /** typically just .resolve, but renaming to disambiguate between this and Promise.resolve()**/
@@ -149,7 +149,7 @@ class Promise<T> implements PromiseLike<T> {
                         reject(error);
                     }
                 }
-            )
+            );
         });
     }
 
@@ -183,8 +183,28 @@ class Promise<T> implements PromiseLike<T> {
         });
     }
 
-    public static allSettled<T>(promises: PromiseLike<T>[]): Promise<T[]> {
-        return undefined; // not yet implemented
+    public static allSettled<T>(
+        promises: PromiseLike<T>[]
+    ): Promise<({status: "fulfilled", value: T} | {status: "rejected", reason: any})[]> {
+        return Promise.all(
+            promises.map(
+                /**
+                 * below is kind of a hilarious requirement for the ts to compile properly with the typings above:
+                 * need to explicitly cast the status in each case to themselves, 
+                 * as the type immediately gets widened to string otherwise and then fails to compile.
+                 **/
+                p => p.then(
+                    value => ({
+                        status: "fulfilled" as "fulfilled",
+                        value: value
+                    }),
+                    error => ({
+                        status: "rejected" as "rejected",
+                        reason: error
+                    })
+                )
+            )
+        );
     }
 
     public static race<T>(promises: PromiseLike<T>[]): Promise<T> {
