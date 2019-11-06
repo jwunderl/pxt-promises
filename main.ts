@@ -242,11 +242,6 @@ class Promise<T> implements PromiseLike<T> {
 
 function isThenable<T>(value: PromiseResult<T>): value is PromiseLike<T> {
     return value instanceof Promise;
-    // let t = typeof value;
-    // if (value && (t === 'object' || t === 'function')) {
-    //     return (value as any).__PROMISE_MARK || (Object.keys(value).indexOf("then") !== -1);
-    // }
-    // return false;
 }
 
 function doResolve<T>(
