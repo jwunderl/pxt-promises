@@ -1,3 +1,4 @@
+game.consoleOverlay.setVisible(true);
 const delay = (n: number) => new Promise(resolve => (pause(n), resolve()));
 
 // catch / then / catch / finally
@@ -10,7 +11,7 @@ function test1() {
         throw 'Something went wrong...';
     };
 
-    const p = Promise.reject(42)
+    return Promise.reject(42)
         .catch(value => value) // resolves
         .catch(anything) // ignored
         .catch(anything) // ignored
@@ -23,15 +24,21 @@ function test1() {
 
 // all / allSettled / race
 function test2() {
-    const promises = [
+    const promises = () => [
         delay(100).then(() => 1),
         delay(200).then(() => 2),
         delay(300).then(() => { throw "Boom"; }),
     ];
 
-    Promise.all(promises).then(console.log).catch(console.error);
-    Promise.race(promises).then(console.log).catch(console.error);
-    Promise.allSettled(promises)
+    Promise.all(promises())
+        .then(
+            console.log,
+            console.error
+        );
+    Promise.race(promises())
+        .then(console.log)
+        .catch(console.error);
+    return Promise.allSettled(promises())
         .then(res => res.filter(p => p.status === "fulfilled"))
         .then(res => res.map(p => p.value))
         .then(console.log)
@@ -48,8 +55,13 @@ function test3() {
         );
     }
 
-    Promise.race(promises)
+    return Promise.race(promises)
         .then(c => scene.setBackgroundColor(c));
 }
 
-test3();
+Promise.resolve(undefined)
+    .then(test1)
+    .then(() => delay(1000))
+    .then(test2)
+    .then(() => delay(1000))
+    .then(test3)
