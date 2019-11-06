@@ -25,9 +25,12 @@ function test1() {
 // all / allSettled / race
 function test2() {
     const promises = () => [
-        delay(100).then(() => 1),
-        delay(200).then(() => 2),
-        delay(300).then(() => { throw "Boom"; }),
+        delay(100)
+            .then(() => 1),
+        delay(200)
+            .then(() => 2),
+        delay(300)
+            .then(() => { throw "Boom"; }),
     ];
 
     Promise.all(promises())
