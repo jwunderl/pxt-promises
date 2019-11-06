@@ -97,14 +97,17 @@ class Promise<T> implements PromiseLike<T> {
         }
     }
 
-    protected handle<TResult1 = T, TResult2 = never>(handler: Handler<T, TResult1, TResult2>) {
+    protected handle<TResult1 = T, TResult2 = never>(handler: Handler<T, TResult1, TResult2>): void {
         switch (this.state) {
             case PromiseState.PENDING:
-                return this.handlers.push(handler) as void;
+                this.handlers.push(handler);
+                return;
             case PromiseState.FULFILLED:
-                return handler.onFulfilled(this.value);
+                handler.onFulfilled(this.value);
+                return;
             case PromiseState.REJECTED:
-                return handler.onRejected(this.error);
+                handler.onRejected(this.error);
+                return;
         }
     }
 
