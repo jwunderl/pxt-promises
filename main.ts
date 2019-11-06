@@ -1,4 +1,3 @@
-// Implementation partially derived from https://www.promisejs.org/implementing/
 type PromiseResult<T> = T | PromiseLike<T>;
 
 interface PromiseLike<T> {
@@ -8,15 +7,18 @@ interface PromiseLike<T> {
     ): PromiseLike<TResult1 | TResult2>;
 }
 
-/** for Promise.allSettled. Ideally should be
+/**
+ * For Promise.allSettled; ideally should be
  * {status: "fulfilled", value: T} | {status: "rejected", reason: any}
  * to better reflect state, but that makes it really,
- * really hard to actually use currently.
+ * really, really hard to actually use currently -
+ * need to explicitly disambiguate,
+ * meaning e.g. filtering on status === "fulfilled" isn't trivially enough.
  **/
 interface SettledPromise<T> {
     status: "fulfilled" | "rejected",
-    value?: T, // only if status == "fulfilled"
-    reason?: any // only if status == "rejected"
+    value?: T, // iff status == "fulfilled"
+    reason?: any // iff status == "rejected"
 }
 
 enum PromiseState {
@@ -41,15 +43,6 @@ class Promise<T> implements PromiseLike<T> {
     protected error: any;
     protected handlers: Handler<T, any, any>[];
 
-    /**
-     * INTERNAL
-     * this is temporarily used to identify Promise class objects at runtime,
-     * as Object.keys cannot yet enumerate objects that are dynamically class types.
-     * 
-     * This may change or be removed at any time.
-     **/
-    __PROMISE_MARK = 42;
-
     public constructor(
         executor: (
             resolve: (value?: T | PromiseLike<T>) => void,
@@ -65,13 +58,12 @@ class Promise<T> implements PromiseLike<T> {
                     fulfiller: (value: PromiseResult<T>) => void,
                     rejecter: (value: PromiseResult<T>) => void
                 ) => executor(fulfiller, rejecter),
-                (t: T) => this.resolveThis(t),
+                (t: T) => this.resolvePromise(t),
                 (e: any) => this.reject(e)
             );
         });
     }
 
-    // protected fulfill(result: PromiseResult<T>): void {
     protected fulfill(result: T): void {
         this.state = PromiseState.FULFILLED;
         this.value = result;
@@ -86,8 +78,7 @@ class Promise<T> implements PromiseLike<T> {
         this.handlers = undefined;
     }
 
-    /** typically just .resolve, but renaming to disambiguate between this and Promise.resolve()**/
-    protected resolveThis(result: PromiseResult<T>) {
+    protected resolvePromise(result: PromiseResult<T>) {
         try {
             if (isThenable(result)) {
                 doResolve(
@@ -95,7 +86,7 @@ class Promise<T> implements PromiseLike<T> {
                         fulfiller: (value: PromiseResult<T>) => void,
                         rejecter: (value: PromiseResult<T>) => void
                     ) => result.then(fulfiller, rejecter),
-                    (t: T) => this.resolveThis(t),
+                    (t: T) => this.resolvePromise(t),
                     (e: any) => this.reject(e)
                 );
             } else {
@@ -107,15 +98,13 @@ class Promise<T> implements PromiseLike<T> {
     }
 
     protected handle<TResult1 = T, TResult2 = never>(handler: Handler<T, TResult1, TResult2>) {
-        if (this.state === PromiseState.PENDING) {
-            this.handlers.push(handler);
-        } else {
-            if (this.state === PromiseState.FULFILLED) {
-                handler.onFulfilled(this.value);
-            }
-            if (this.state === PromiseState.REJECTED) {
-                handler.onRejected(this.error);
-            }
+        switch (this.state) {
+            case PromiseState.PENDING:
+                return this.handlers.push(handler) as void;
+            case PromiseState.FULFILLED:
+                return handler.onFulfilled(this.value);
+            case PromiseState.REJECTED:
+                return handler.onRejected(this.error);
         }
     }
 
@@ -123,7 +112,6 @@ class Promise<T> implements PromiseLike<T> {
         onFulfilled?: (value: T) => PromiseResult<TResult1>,
         onRejected?: (reason: any) => PromiseResult<TResult2>
     ): void {
-        // ensure we are always asynchronous; normally setTimeout(..., 0)
         control.runInParallel(() => {
             this.handle({
                 onFulfilled: onFulfilled || ((t) => { }),
@@ -156,7 +144,7 @@ class Promise<T> implements PromiseLike<T> {
                         } catch (ex) {
                             reject(ex);
                         }
-                    } else { // if no onRejected, TResult1 = T
+                    } else { // if no onRejected, TResult2 = previous error reason
                         reject(error);
                     }
                 }
@@ -201,9 +189,10 @@ class Promise<T> implements PromiseLike<T> {
         return Promise.all(
             promises.map(
                 /**
-                 * below is kind of a hilarious requirement for the ts to compile properly with the typings above:
+                 * below is kind of a hilarious requirement for the ts to compile
+                 * properly with the typings above:
                  * need to explicitly cast the status in each case to themselves, 
-                 * as the type immediately gets widened to string otherwise and then fails to compile.
+                 * as the type immediately gets widened to string before being passed otherwiseZ and then fails to compile.
                  **/
                 p => p.then(
                     value => ({
@@ -222,7 +211,6 @@ class Promise<T> implements PromiseLike<T> {
     public static race<T>(promises: PromiseLike<T>[]): Promise<T> {
         return new Promise(function (fulfill, reject) {
             promises.forEach(function (p) {
-                // invoke the first one that completes, ignore the rest
                 p.then(
                     fulfill,
                     reject
@@ -245,23 +233,29 @@ function isThenable<T>(value: PromiseResult<T>): value is PromiseLike<T> {
 }
 
 function doResolve<T>(
-        fn: Resolver<T>,
-        onFulfilled: (value: PromiseResult<T>) => void,
-        onRejected: (reason: any) => void
-    ) {
+    fnToResolve: Resolver<T>,
+    onFulfilled: (value: PromiseResult<T>) => void,
+    onRejected: (reason: any) => void
+) {
     let done = false;
     try {
-        fn(function (value) {
-            if (done) return;
-            done = true;
-            onFulfilled(value);
-        }, function (reason) {
-            if (done) return;
-            done = true;
-            onRejected(reason);
-        })
+        fnToResolve(
+            value => {
+                if (done)
+                    return;
+                done = true;
+                onFulfilled(value);
+            },
+            reason => {
+                if (done)
+                    return;
+                done = true;
+                onRejected(reason);
+            }
+        );
     } catch (ex) {
-        if (done) return;
+        if (done)
+            return;
         done = true;
         onRejected(ex);
     }
