@@ -226,7 +226,7 @@ class Promise<T> implements PromiseLike<T> {
         return new Promise((_, reject) => reject(reason));
     }
 
-    public static resolve<T>(value?: PromiseResult<T>): Promise<T> {
+    public static resolve<T = void>(value?: PromiseResult<T>): Promise<T> {
         return new Promise(resolve => resolve(value));
     }
 }
