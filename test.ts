@@ -47,10 +47,10 @@ function test2() {
         .then(console.log)
 }
 
-/** really poor random background color chooser **/
+/** really poor random number picker chooser **/
 function test3() {
     const promises = [];
-    for (let i = 0x2; i < 0xF; ++i) {
+    for (let i = 0x0; i < 0xF; ++i) {
         const j = i;
         promises.push(
             delay(Math.randomRange(100, 2000))
@@ -59,7 +59,7 @@ function test3() {
     }
 
     return Promise.race(promises)
-        .then(c => scene.setBackgroundColor(c));
+        .then(c => console.log(`Random number is ${c}`));
 }
 
 Promise.resolve(undefined)
@@ -68,3 +68,4 @@ Promise.resolve(undefined)
     .then(test2)
     .then(() => delay(1000))
     .then(test3)
+    .then(() => {scene.setBackgroundColor(0xC)})
