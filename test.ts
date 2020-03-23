@@ -50,7 +50,7 @@ function test2() {
 /** really poor random background color chooser **/
 function test3() {
     const promises = [];
-    for (let i = 0x1; i < 0xF; ++i) {
+    for (let i = 0x2; i < 0xF; ++i) {
         const j = i;
         promises.push(
             delay(Math.randomRange(100, 2000))
