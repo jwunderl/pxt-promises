@@ -1,16 +1,19 @@
 {
     "name": "promises",
+    "version": "1.0.3",
+    "description": "",
     "dependencies": {
         "device": "*"
     },
-    "description": "",
     "files": [
         "main.ts",
         "README.md"
     ],
-    "preferredEditor": "tsprj",
     "testFiles": [
         "test.ts"
     ],
-    "version": "1.0.3"
+    "supportedTargets": [
+        "arcade"
+    ],
+    "preferredEditor": "tsprj"
 }
